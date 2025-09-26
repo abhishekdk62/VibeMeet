@@ -25,6 +25,9 @@ let MeetingsController = class MeetingsController {
     async createMeeting(createMeetingDto, req) {
         return await this.meetingService.createMeeting(createMeetingDto, req.user.sub);
     }
+    async getMeetingById(userId) {
+        return await this.meetingService.findByUserId(userId);
+    }
     async getMeeting(meetingId) {
         return await this.meetingService.findByMeetingId(meetingId);
     }
@@ -47,6 +50,13 @@ __decorate([
     __metadata("design:paramtypes", [meeting_dto_1.CreateMeetingDto, Object]),
     __metadata("design:returntype", Promise)
 ], MeetingsController.prototype, "createMeeting", null);
+__decorate([
+    (0, common_1.Get)('user/:userId'),
+    __param(0, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], MeetingsController.prototype, "getMeetingById", null);
 __decorate([
     (0, common_1.Get)(':meetingId'),
     __param(0, (0, common_1.Param)('meetingId')),

@@ -54,7 +54,7 @@ let MeetingGateway = MeetingGateway_1 = class MeetingGateway {
                 socketId: data.targetSocketId,
                 userId: targetUser?.userId,
                 audioEnabled: false,
-                mutedByHost: true
+                mutedByHost: true,
             });
             this.logger.log(`Host ${socket.id} muted participant ${data.targetSocketId}`);
         }
@@ -79,7 +79,7 @@ let MeetingGateway = MeetingGateway_1 = class MeetingGateway {
                 socketId: data.targetSocketId,
                 userId: targetUser?.userId,
                 audioEnabled: true,
-                mutedByHost: false
+                mutedByHost: false,
             });
             this.logger.log(`Host ${socket.id} unmuted participant ${data.targetSocketId}`);
         }
@@ -104,7 +104,7 @@ let MeetingGateway = MeetingGateway_1 = class MeetingGateway {
                 socketId: data.targetSocketId,
                 userId: targetUser?.userId,
                 videoEnabled: false,
-                disabledByHost: true
+                disabledByHost: true,
             });
             this.logger.log(`Host ${socket.id} disabled video for participant ${data.targetSocketId}`);
         }
@@ -129,7 +129,7 @@ let MeetingGateway = MeetingGateway_1 = class MeetingGateway {
                 socketId: data.targetSocketId,
                 userId: targetUser?.userId,
                 videoEnabled: true,
-                disabledByHost: false
+                disabledByHost: false,
             });
             this.logger.log(`Host ${socket.id} enabled video for participant ${data.targetSocketId}`);
         }
@@ -152,13 +152,13 @@ let MeetingGateway = MeetingGateway_1 = class MeetingGateway {
             }
             await this.meetingService.leaveMeeting(data.meetingId, targetUser.userId);
             this.server.to(data.targetSocketId).emit('you-were-removed', {
-                reason: 'Removed by host'
+                reason: 'Removed by host',
             });
             socket.to(data.meetingId).emit('participant-left', {
                 socketId: data.targetSocketId,
                 userId: targetUser.userId,
                 userName: targetUser.userName,
-                reason: 'removed'
+                reason: 'removed',
             });
             this.connectedUsers.delete(data.targetSocketId);
             this.userToSocket.delete(targetUser.userId);
@@ -269,7 +269,10 @@ let MeetingGateway = MeetingGateway_1 = class MeetingGateway {
         catch (error) {
             this.logger.error('❌ Error joining meeting:', error);
             this.logger.error('Error stack:', error.stack);
-            socket.emit('join-error', { message: 'Failed to join meeting', error: error.message });
+            socket.emit('join-error', {
+                message: 'Failed to join meeting',
+                error: error.message,
+            });
         }
     }
     async handleLeaveMeeting(socket, data) {
@@ -383,14 +386,13 @@ let MeetingGateway = MeetingGateway_1 = class MeetingGateway {
             socketId: socket.id,
             userId: user.userId,
             timestamp: data.timestamp || new Date().toISOString(),
-            meetingId: data.meetingId
+            meetingId: data.meetingId,
         };
         this.logger.log('📤 Broadcasting message:', JSON.stringify(messageData, null, 2));
         this.server.to(data.meetingId).emit('new-message', messageData);
         this.logger.log(`✅ Message sent in meeting ${data.meetingId} by ${user.userName}`);
     }
     getMeetingParticipants(meetingId) {
-        console.log(`🔍 Getting participants for meeting ${meetingId}`);
         const socketIds = this.meetingRooms.get(meetingId);
         console.log(`Socket IDs in room:`, socketIds ? Array.from(socketIds) : 'No room found');
         if (!socketIds || socketIds.size === 0) {
@@ -555,6 +557,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MeetingGateway.prototype, "handleScreenShareStop", null);
 __decorate([
+    (0, websockets_1.SubscribeMessage)('send-message'),
     __param(0, (0, websockets_1.ConnectedSocket)()),
     __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
@@ -564,7 +567,9 @@ __decorate([
 exports.MeetingGateway = MeetingGateway = MeetingGateway_1 = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {
-            origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+            origin: process.env.NODE_ENV == 'dev'
+                ? process.env.FRONTEND_URL_DEV
+                : process.env.FRONTEND_URL_PROD,
             credentials: true,
         },
         namespace: '/meetings',

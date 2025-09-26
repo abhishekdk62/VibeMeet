@@ -188,16 +188,23 @@ class SocketService {
     });
   }
 
-  sendMessage(meetingId, message) {
-    if (!this.validateConnection(meetingId)) return;
-    
-    this.socket.emit('send-message', {
-      meetingId,
-      message,
-      socketId: this.socket.id,
-      timestamp: new Date().toISOString()
-    });
-  }
+sendMessage(meetingId, message, userName) {
+  if (!this.validateConnection(meetingId)) return;
+  
+  const messageData = {
+    meetingId,
+    message: message.trim(),
+    userName,
+    socketId: this.socket.id,
+    timestamp: new Date().toISOString(),
+    id: `${this.socket.id}-${Date.now()}-${Math.random()}` // Unique ID
+  };
+  
+  console.log('📤 Sending message via socket:', messageData);
+  this.socket.emit('send-message', messageData);
+  return messageData;
+}
+
 
   // HOST CONTROL METHODS
   hostMuteParticipant(meetingId, targetSocketId) {

@@ -8,14 +8,14 @@ async function bootstrap() {
     app.useWebSocketAdapter(new platform_socket_io_1.IoAdapter(app));
     app.enableCors({
         origin: [
-            'http://localhost:3000',
-            'http://localhost:3001',
-            'http://localhost:5173',
-            process.env.FRONTEND_URL || 'http://localhost:3000',
+            process.env.NODE_ENV == 'dev'
+                ? process.env.FRONTEND_URL_DEV
+                : process.env.FRONTEND_URL_PROD,
         ],
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         credentials: true,
     });
+    app.setGlobalPrefix('api');
     await app.listen(process.env.PORT ?? 4000);
 }
 bootstrap();

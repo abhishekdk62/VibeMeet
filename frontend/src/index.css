@@ -1,0 +1,30 @@
+/* Add this to your global CSS file */
+@keyframes animate-enter {
+  0% {
+    transform: translate3d(0, -50px, 0) scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes animate-leave {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, -50px, 0) scale(0.95);
+    opacity: 0;
+  }
+}
+
+.animate-enter {
+  animation: animate-enter 0.3s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+.animate-leave {
+  animation: animate-leave 0.2s cubic-bezier(0.06, 0.71, 0.55, 1) forwards;
+}

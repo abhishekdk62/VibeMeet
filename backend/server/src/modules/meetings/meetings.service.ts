@@ -21,7 +21,6 @@ export class MeetingService {
     hostId: string,
   ): Promise<Meeting> {
     const meetingId = await this.generateUniqueMeetingId();
-    console.log(createMeetingDto);
     const meeting = new this.meetingModel({
       ...createMeetingDto,
       meetingId,
@@ -41,6 +40,13 @@ export class MeetingService {
   async findByMeetingId(meetingId: string): Promise<Meeting | null> {
     return await this.meetingModel
       .findOne({ meetingId })
+      .populate('hostId', 'firstName lastName email avatar')
+      .populate('participants.userId', 'firstName lastName email avatar')
+      .exec();
+  }
+  async findByUserId(userId: string): Promise<Meeting[] | null> {
+    return await this.meetingModel
+      .find({ 'participants.userId':userId })
       .populate('hostId', 'firstName lastName email avatar')
       .populate('participants.userId', 'firstName lastName email avatar')
       .exec();

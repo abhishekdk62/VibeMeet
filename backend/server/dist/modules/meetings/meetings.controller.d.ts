@@ -4,6 +4,7 @@ export declare class MeetingsController {
     private readonly meetingService;
     constructor(meetingService: MeetingService);
     createMeeting(createMeetingDto: CreateMeetingDto, req: any): Promise<import("./entities/meeting.entity").Meeting>;
+    getMeetingById(userId: string): Promise<import("./entities/meeting.entity").Meeting[] | null>;
     getMeeting(meetingId: string): Promise<import("./entities/meeting.entity").Meeting | null>;
     joinMeeting(meetingId: string, req: any): Promise<import("./entities/meeting.entity").Meeting | null>;
     leaveMeeting(meetingId: string, req: any): Promise<import("./entities/meeting.entity").Meeting | null>;

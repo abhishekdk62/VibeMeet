@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ChatSidebar = ({ 
   onClose, 
@@ -20,54 +21,55 @@ const ChatSidebar = ({
     scrollToBottom();
   }, [messages]);
 
-  // Listen for new messages
-  useEffect(() => {
-    const handleNewMessage = (messageData) => {
-      console.log('📨 New message received:', messageData);
+useEffect(() => {
+  const handleNewMessage = (messageData) => {
+    console.log('📨 New message received:', messageData);
+    
+    const formattedMessage = {
+      id: messageData.id || `${messageData.socketId}-${Date.now()}`,
+      sender: messageData.userName || 'Unknown User',
+      message: messageData.message,
+      time: new Date(messageData.timestamp).toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+      isCurrentUser: messageData.socketId === socketService.socket?.id,
+      socketId: messageData.socketId,
+      timestamp: messageData.timestamp
+    };
+
+    setMessages(prev => {
+      // Prevent duplicates by checking message ID and recent timestamp
+      const exists = prev.some(msg => 
+        msg.id === formattedMessage.id || 
+        (msg.message === formattedMessage.message && 
+         msg.socketId === formattedMessage.socketId &&
+         Math.abs(new Date(msg.timestamp) - new Date(formattedMessage.timestamp)) < 1000)
+      );
       
-      const formattedMessage = {
-        id: messageData.id || `${messageData.socketId}-${Date.now()}`,
-        sender: messageData.userName || 'Unknown User',
-        message: messageData.message,
-        time: new Date(messageData.timestamp).toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }),
-        isCurrentUser: messageData.socketId === socketService.socket?.id,
-        socketId: messageData.socketId,
-        timestamp: messageData.timestamp
-      };
-
-      setMessages(prev => {
-        // Check for duplicates by message ID or content + timestamp
-        const exists = prev.some(msg => 
-          msg.id === formattedMessage.id || 
-          (msg.message === formattedMessage.message && 
-           msg.socketId === formattedMessage.socketId &&
-           Math.abs(new Date(msg.timestamp) - new Date(formattedMessage.timestamp)) < 1000)
-        );
-        
-        if (exists) {
-          console.log('🚫 Duplicate message detected, skipping:', formattedMessage);
-          return prev;
-        }
-        
-        return [...prev, formattedMessage];
-      });
-    };
-
-    // Set up listener for new messages
-    if (socketService.socket) {
-      socketService.socket.on('new-message', handleNewMessage);
-    }
-
-    // Cleanup
-    return () => {
-      if (socketService.socket) {
-        socketService.socket.off('new-message', handleNewMessage);
+      if (exists) {
+        console.log('🚫 Duplicate message detected, skipping:', formattedMessage);
+        return prev;
       }
-    };
-  }, [socketService, currentUser]);
+      
+      return [...prev, formattedMessage];
+    });
+  };
+
+  // Set up listener with proper cleanup
+  if (socketService.socket) {
+    // Remove any existing listeners first
+    socketService.socket.off('new-message', handleNewMessage);
+    socketService.socket.on('new-message', handleNewMessage);
+  }
+
+  // Cleanup function
+  return () => {
+    if (socketService.socket) {
+      socketService.socket.off('new-message', handleNewMessage);
+    }
+  };
+}, [socketService.socket?.id]); // Add socket ID as dependency
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -89,7 +91,7 @@ const ChatSidebar = ({
       console.log('✅ Message sent via socket, waiting for server response...');
     } catch (error) {
       console.error('❌ Error sending message:', error);
-      alert('Failed to send message. Please try again.');
+      toast.error('Failed to send message. Please try again.');
     }
   };
 

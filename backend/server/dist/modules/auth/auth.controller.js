@@ -24,7 +24,9 @@ let AuthController = class AuthController {
     async googleAuth() { }
     async googleAuthRedirect(req, res) {
         const result = await this.authService.googleLogin(req.user);
-        const redirectUrl = `${process.env.FRONTEND_URL}/dashboard?token=${result.accessToken}`;
+        const redirectUrl = `${process.env.NODE_ENV == 'dev'
+            ? process.env.FRONTEND_URL_DEV
+            : process.env.FRONTEND_URL_PROD}/dashboard?token=${result.accessToken}`;
         return res.redirect(redirectUrl);
     }
     async signup(body) {

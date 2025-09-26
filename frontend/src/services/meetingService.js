@@ -19,6 +19,10 @@ export const leaveMeeting = async (meetingId) => {
   const res = await apiClient.patch(`/meetings/${meetingId}/leave`);
   return res.data;
 };
+export const getMeetings = async (userId) => {
+  const res = await apiClient.get(`/meetings/user/${userId}`);
+  return res.data;
+};
 
 export const updateMeetingStatus = async (meetingId, status) => {
   const res = await apiClient.patch(`/meetings/${meetingId}/status`, { status });

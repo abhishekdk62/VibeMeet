@@ -6,6 +6,7 @@ export declare class MeetingService {
     constructor(meetingModel: Model<MeetingDocument>);
     createMeeting(createMeetingDto: CreateMeetingDto, hostId: string): Promise<Meeting>;
     findByMeetingId(meetingId: string): Promise<Meeting | null>;
+    findByUserId(userId: string): Promise<Meeting[] | null>;
     joinMeeting(meetingId: string, userId: string): Promise<Meeting | null>;
     leaveMeeting(meetingId: string, userId: string): Promise<Meeting | null>;
     updateMeetingStatus(meetingId: string, status: 'waiting' | 'active' | 'ended'): Promise<Meeting | null>;

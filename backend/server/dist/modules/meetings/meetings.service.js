@@ -24,7 +24,6 @@ let MeetingService = class MeetingService {
     }
     async createMeeting(createMeetingDto, hostId) {
         const meetingId = await this.generateUniqueMeetingId();
-        console.log(createMeetingDto);
         const meeting = new this.meetingModel({
             ...createMeetingDto,
             meetingId,
@@ -42,6 +41,13 @@ let MeetingService = class MeetingService {
     async findByMeetingId(meetingId) {
         return await this.meetingModel
             .findOne({ meetingId })
+            .populate('hostId', 'firstName lastName email avatar')
+            .populate('participants.userId', 'firstName lastName email avatar')
+            .exec();
+    }
+    async findByUserId(userId) {
+        return await this.meetingModel
+            .find({ 'participants.userId': userId })
             .populate('hostId', 'firstName lastName email avatar')
             .populate('participants.userId', 'firstName lastName email avatar')
             .exec();

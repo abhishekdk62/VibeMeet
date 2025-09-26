@@ -8,11 +8,11 @@ import webrtcService from "../services/webRtcServices.js";
 import ParticipantActions from "../components/ParticipantActions.jsx";
 import socketService from "../services/socketService.js";
 import { getMeeting, leaveMeeting } from "../services/meetingService.js";
+import toast from "react-hot-toast";
 
 const VideoCall = () => {
   const navigate = useNavigate();
   const { meetingId } = useParams();
-
   // States
   const [participants, setParticipants] = useState([]);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
@@ -51,7 +51,6 @@ const VideoCall = () => {
       setUnreadMessages((prev) => prev + 1);
     }
   };
-
   // Helper function to wait for socket connection
   const waitForSocketConnection = (socket) => {
     return new Promise((resolve, reject) => {
@@ -201,8 +200,6 @@ const VideoCall = () => {
         retries++;
       }
 
-      // Step 4: Get user media FIRST and wait for it
-      console.log("🎥 Requesting user media access...");
       try {
         const stream = await webrtcService.getUserMedia();
         if (!isMounted) return;
@@ -343,8 +340,8 @@ const VideoCall = () => {
         } else {
           errorMessage += "Please try again.";
         }
+        toast.error(errorMessage);
 
-        alert(errorMessage);
         navigate("/dashboard");
       }
     }
@@ -488,7 +485,8 @@ const VideoCall = () => {
       onScreenShareError: ({ error, socketId }) => {
         console.error("Screen share error from participant:", error);
         if (socketId === webrtcService.socket?.id) {
-          alert(`Screen sharing failed: ${error}`);
+          toast.error("Screen sharing failed");
+          console.log(error);
         }
       },
 
@@ -497,7 +495,10 @@ const VideoCall = () => {
       },
 
       onMeetingEnded: () => {
-        alert("Meeting has ended");
+        toast("Meeting has ended!", {
+          icon: "👏",
+        });
+
         navigate("/dashboard");
       },
 
@@ -507,7 +508,7 @@ const VideoCall = () => {
 
       onJoinError: (error) => {
         console.error("❌ Join error:", error);
-        alert("Failed to join meeting: " + (error.message || "Unknown error"));
+        toast.error("Failed to join meeting");
         navigate("/dashboard");
       },
 
@@ -524,8 +525,8 @@ const VideoCall = () => {
           isMuted: true,
           hostMuted: true,
         }));
-
-        alert("Host has muted you");
+  toast("Host has muted you!", {
+        });
       },
 
       onHostUnmutedYou: () => {
@@ -533,8 +534,10 @@ const VideoCall = () => {
           ...prev,
           hostMuted: false,
         }));
+       toast("Host has given you permission to unmute!", {
+          icon: "👏",
+        });
 
-        alert("Host has given you permission to unmute");
       },
 
       onHostDisabledVideo: () => {
@@ -551,7 +554,9 @@ const VideoCall = () => {
           hostDisabledVideo: true,
         }));
 
-        alert("Host has disabled your video");
+         toast("Host has disabled your video!", {
+          icon: "👏",
+        });
       },
 
       onHostEnabledVideo: () => {
@@ -559,12 +564,15 @@ const VideoCall = () => {
           ...prev,
           hostDisabledVideo: false,
         }));
-
-        alert("Host has given you permission to turn on video");
+ toast("Host has given you permission to turn on video!", {
+          icon: "👏",
+        });
       },
 
       onRemovedFromMeeting: (data) => {
-        alert("You have been removed from the meeting by the host");
+         toast("You have been removed from the meeting by the host!", {
+          icon: "",
+        });
         navigate("/dashboard");
       },
     };
@@ -621,9 +629,8 @@ const VideoCall = () => {
     // ADDED: Validate stream before proceeding
     if (!webrtcService.validateLocalStream()) {
       console.error("❌ Local stream validation failed");
-      alert(
-        "Media stream not available. Please refresh the page and try again."
-      );
+      toast.error("Media stream not available");
+
       return;
     }
 
@@ -640,10 +647,10 @@ const VideoCall = () => {
         socketService.toggleAudio(meetingId, audioEnabled);
       } catch (error) {
         console.error("❌ Error toggling audio:", error);
-        alert("Failed to toggle audio. Please try again.");
+        toast.error("Failed to toggle audio. Please try again");
       }
     } else {
-      alert("Host has muted you. You cannot unmute yourself.");
+      toast.error("Host has muted you. You cannot unmute yourself");
     }
   }, [currentUser, meetingId]);
 
@@ -662,7 +669,7 @@ const VideoCall = () => {
 
     if (!webrtcService.localStream) {
       console.warn("WebRTC service has no local stream");
-      alert("Media not ready yet. Please wait a moment and try again.");
+      toast.error("Media not ready yet. Please wait a moment and try again.");
       return;
     }
 
@@ -679,10 +686,10 @@ const VideoCall = () => {
         socketService.toggleVideo(meetingId, videoEnabled);
       } catch (error) {
         console.error("Error toggling video:", error);
-        alert("Failed to toggle video. Please try again.");
+        toast.error("Failed to toggle video. Please try again");
       }
     } else {
-      alert("Host has disabled your video. You cannot turn it on yourself.");
+      toast.error("Host has disabled your video");
     }
   }, [currentUser, meetingId]);
 
@@ -713,7 +720,23 @@ const VideoCall = () => {
       }
     } catch (error) {
       console.error("❌ Screen share error:", error);
-      alert("Failed to start screen sharing with camera. Please try again.");
+      toasts.showError({
+        title: "Failed to join meeting",
+        message: "Please check your internet connection and try again",
+        action: {
+          label: "Retry",
+          onClick: () => console.log("Retrying..."),
+          dismissOnClick: false,
+        },
+      });
+
+      toastManager.showError({
+        title: "Host has disabled your video",
+        message: "You cannot turn it on yourself",
+        action: {
+          dismissOnClick: false,
+        },
+      });
     }
   };
 

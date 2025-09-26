@@ -3,7 +3,13 @@ import MainContent from "../components/MainContent";
 import AccountModal from "../components/AccountModal";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
-import { createMeeting, joinMeeting } from "../services/meetingService";
+import {
+  createMeeting,
+  getMeetings,
+  joinMeeting,
+} from "../services/meetingService";
+import toast from "react-hot-toast";
+import { User } from "lucide-react";
 
 const LandingPage = () => {
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -32,12 +38,12 @@ const LandingPage = () => {
   const closeSidebar = () => {
     setSidebarOpen(false);
   };
-
+const [meetings,setMeetings]=useState([])
   const handleCreateMeeting = async () => {
     try {
       const userJson = localStorage.getItem("user");
       if (!userJson) {
-        alert("Please login first");
+        toast.error("Please login first");
         return;
       }
       const user = userJson ? JSON.parse(userJson) : {};
@@ -45,8 +51,8 @@ const LandingPage = () => {
         `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
         user.email ||
         "Host";
-        console.log('creating meeting');
-        
+      console.log("creating meeting");
+
       const res = await createMeeting({
         title: `${userName}'s Meeting`,
       });
@@ -54,22 +60,41 @@ const LandingPage = () => {
       navigate(`/call/${res.meetingId}`);
     } catch (error) {
       console.error("Error creating meeting:", error);
-      alert("Failed to create meeting. Please try again.");
+      toast.error("Failed to create meeting. Please try again");
     }
   };
+  const getUserMeetings = async () => {
+    try {
+      const userJson = localStorage.getItem("user");
+      const user = JSON.parse(userJson);
+      console.log(userJson);
+      const data = await getMeetings(user._id);
+      setMeetings(data)
+      console.log(data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  useEffect(() => {
+    const userJson = localStorage.getItem("user");
+    if (userJson) {
+      getUserMeetings();
+    }
+  }, []);
 
   const handleJoinMeeting = async () => {
     try {
       const userJson = localStorage.getItem("user");
       if (!userJson) {
-        alert("Please login first");
+        toast.error("Please login first");
+
         return;
       }
       const res = await joinMeeting(joinCode);
       console.log(res);
       navigate(`/call/${joinCode}`);
     } catch (error) {
-      alert(error.response.data.message);
+      toast.error(error.response.data.message);
       console.log(error);
     }
     console.log("Joining meeting with code:", joinCode);
@@ -135,7 +160,9 @@ const LandingPage = () => {
         style={{ width: "280px" }}
         aria-hidden={!sidebarOpen}
       >
-        {sidebarOpen && <Sidebar closeSidebar={closeSidebar} />}
+        {sidebarOpen && <Sidebar
+        meetings={meetings}
+        closeSidebar={closeSidebar} />}
       </div>
 
       {/* Main content */}
@@ -154,7 +181,7 @@ const LandingPage = () => {
             className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-medium hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             aria-label="Open account modal"
           >
-            {userInitial || "A"}
+            {userInitial || <User />}
           </button>
         </header>
 
@@ -171,6 +198,7 @@ const LandingPage = () => {
         <AccountModal
           onClose={() => setShowAccountModal(false)}
           onLogout={handleLogout}
+          getUserMeetings={getUserMeetings}
         />
       )}
     </div>

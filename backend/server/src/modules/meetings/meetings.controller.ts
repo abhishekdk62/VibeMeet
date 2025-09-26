@@ -1,17 +1,18 @@
 // src/modules/meetings/meetings.controller.ts
-import { 
-  Controller, 
-  Post, 
-  Get, 
-  Param, 
-  Body, 
-  UseGuards, 
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  UseGuards,
   Request,
-  Patch 
+  Patch,
 } from '@nestjs/common';
 import { MeetingService } from './meetings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateMeetingDto } from './dto/meeting.dto';
+import { get } from 'mongoose';
 
 @Controller('meetings')
 @UseGuards(JwtAuthGuard)
@@ -21,12 +22,17 @@ export class MeetingsController {
   @Post()
   async createMeeting(
     @Body() createMeetingDto: CreateMeetingDto,
-    @Request() req: any
+    @Request() req: any,
   ) {
-    
-    return await this.meetingService.createMeeting(createMeetingDto, req.user.sub);
+    return await this.meetingService.createMeeting(
+      createMeetingDto,
+      req.user.sub,
+    );
   }
-
+  @Get('user/:userId')
+  async getMeetingById(@Param('userId') userId: string) {
+    return await this.meetingService.findByUserId(userId);
+  }
   @Get(':meetingId')
   async getMeeting(@Param('meetingId') meetingId: string) {
     return await this.meetingService.findByMeetingId(meetingId);
@@ -35,7 +41,7 @@ export class MeetingsController {
   @Patch(':meetingId/join')
   async joinMeeting(
     @Param('meetingId') meetingId: string,
-    @Request() req: any
+    @Request() req: any,
   ) {
     return await this.meetingService.joinMeeting(meetingId, req.user.sub);
   }
@@ -43,7 +49,7 @@ export class MeetingsController {
   @Patch(':meetingId/leave')
   async leaveMeeting(
     @Param('meetingId') meetingId: string,
-    @Request() req: any
+    @Request() req: any,
   ) {
     return await this.meetingService.leaveMeeting(meetingId, req.user.sub);
   }
@@ -51,8 +57,11 @@ export class MeetingsController {
   @Patch(':meetingId/status')
   async updateStatus(
     @Param('meetingId') meetingId: string,
-    @Body() body: { status: 'waiting' | 'active' | 'ended' }
+    @Body() body: { status: 'waiting' | 'active' | 'ended' },
   ) {
-    return await this.meetingService.updateMeetingStatus(meetingId, body.status);
+    return await this.meetingService.updateMeetingStatus(
+      meetingId,
+      body.status,
+    );
   }
 }
