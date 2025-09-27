@@ -40,7 +40,6 @@ interface MeetingParticipant {
         : process.env.FRONTEND_URL_PROD,
     credentials: true,
   },
-  namespace: '/meetings',
 })
 @Injectable()
 export class MeetingGateway

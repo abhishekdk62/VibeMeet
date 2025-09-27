@@ -572,7 +572,6 @@ exports.MeetingGateway = MeetingGateway = MeetingGateway_1 = __decorate([
                 : process.env.FRONTEND_URL_PROD,
             credentials: true,
         },
-        namespace: '/meetings',
     }),
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [meetings_service_1.MeetingService])
